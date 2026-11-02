@@ -1,0 +1,67 @@
+replicaCount: 1
+
+image:
+  repository: swordhealth/node-example
+  digest: sha256:b9798788c1e4cdc4d9beca8b9eb8090b3f4e0f361896b321d07ce1131b77745f
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+containerPort: 3000
+
+serviceAccount:
+  create: true
+  name: node-example
+  automountServiceAccountToken: true
+
+service:
+  type: ClusterIP
+  port: 80
+  nodePort: null
+  externalTrafficPolicy: Cluster
+
+ingress:
+  enabled: false
+  className: alb
+  annotations: {}
+  host: ""
+  path: /
+  pathType: Prefix
+
+networkPolicy:
+  enabled: true
+  allowedIngressCidrs: []
+
+rbac:
+  allowListKubeSystemPods: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 0
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+topologySpreadConstraints:
+  maxSkew: 1
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway

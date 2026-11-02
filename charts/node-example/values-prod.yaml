@@ -1,0 +1,36 @@
+replicaCount: 2
+fullnameOverride: node-example
+
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+  host: ""
+  path: /
+  pathType: Prefix
+
+networkPolicy:
+  enabled: true
+  allowedIngressCidrs:
+    - 10.20.40.0/24
+    - 10.20.41.0/24
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
+  externalTrafficPolicy: Local
+
+topologySpreadConstraints:
+  maxSkew: 1
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: DoNotSchedule
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
