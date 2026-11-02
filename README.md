@@ -29,11 +29,12 @@ The production controller Application is configured with the Terraform outputs f
 First connect to EKS using the private SSM tunnel as documented in the infrastructure repository. In a separate terminal, from this repo root, install the root Application:
 
 ```bash
+kubectl create namespace swordhealth
 kubectl apply -f argocd/root-app.yaml
 kubectl get applications -n argocd
 ```
 
-Argo CD syncs the delivery project and the child Applications from Git. The controller chart is pinned to `3.6.2`, matching the version and IAM policy provisioned by Terraform. Its service account name must remain `aws-load-balancer-controller` to match the EKS Pod Identity association. The sample app's service account must remain `node-example` in namespace `swordhealth` for the application Pod Identity association.
+The application namespace is created explicitly because the restricted `delivery` AppProject does not grant child Applications permission to create cluster-scoped Namespace resources. Argo CD then syncs the delivery project and child Applications from Git. The controller chart is pinned to `3.6.2`, matching the version and IAM policy provisioned by Terraform. Its service account name must remain `aws-load-balancer-controller` to match the EKS Pod Identity association. The sample app's service account must remain `node-example` in namespace `swordhealth` for the application Pod Identity association.
 
 Check rollout and ingress status:
 
