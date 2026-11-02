@@ -18,7 +18,7 @@ spec:
       valuesObject:
         clusterName: swordhealth-prod-eks
         region: us-east-1
-        vpcId: vpc-04e3c5bfe0986f739
+        vpcId: vpc-09535e21b1af3d4ff
         serviceAccount:
           create: true
           name: aws-load-balancer-controller
