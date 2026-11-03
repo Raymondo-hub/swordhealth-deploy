@@ -2,6 +2,8 @@
 
 This repository contains the GitOps configuration for the `swordhealth-prod-eks` cluster. Terraform and AWS infrastructure are managed by the infrastructure repository; Argo CD manages the AWS Load Balancer Controller and the `swordhealth/node-example` application here.
 
+See the [production architecture diagram](https://github.com/Raymondo-hub/swordhealth-aws-eks-terraform-challenge/blob/main/docs/architecture.md) for the infrastructure, networking, access, and GitOps deployment flow across both repositories.
+
 ## What is managed
 
 - `argocd/root-app.yaml` is the one-time Argo CD root Application entry point.
