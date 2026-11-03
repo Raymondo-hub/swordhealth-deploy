@@ -20,6 +20,7 @@ The supplied image does not use the provisioned MySQL, S3 buckets, or SQS queue;
 - The private cluster is reachable with `kubectl` through the SSM port-forward tunnel. Follow [the infrastructure repository's private-cluster access steps](https://github.com/Raymondo-hub/swordhealth-aws-eks-terraform-challenge/blob/main/README.md#3-access-the-private-cluster); keep the SSM session running in a separate terminal.
 - Helm, `kubectl`, and Git are installed locally.
 - Push this repository to the configured GitHub `main` branch before installing the root Application. The Git repository must be public or have read credentials configured in Argo CD.
+- Argo CD bootstrap requires a cluster-admin identity. An IAM role with access only to the `swordhealth` namespace cannot install Argo CD's CRDs or create its namespace and root Application.
 
 The production controller Application is configured with the Terraform outputs for this cluster: cluster `swordhealth-prod-eks`, VPC `vpc-09535e21b1af3d4ff`, region `us-east-1`. The application NetworkPolicy uses the two Terraform public subnet CIDRs (`10.20.40.0/24` and `10.20.41.0/24`). For another environment, add a separate Argo CD Application and Helm values overlay with that environment's Terraform outputs rather than reusing the production values.
 
@@ -27,14 +28,17 @@ The production controller Application is configured with the Terraform outputs f
 
 The Terraform outputs and the SSM tunnel belong to the separate infrastructure repository. Do not run `terraform output` or `cd terraform/environments` from this delivery repository. First, follow the infrastructure repository's [private-cluster access instructions](https://github.com/Raymondo-hub/swordhealth-aws-eks-terraform-challenge/blob/main/README.md#3-access-the-private-cluster) and leave its SSM port-forward session running in another terminal.
 
-Then, in a terminal for the delivery repository, commit and push the production configuration before bootstrapping. From the current clone path:
+Then, in a terminal for the delivery repository, ensure the production configuration you intend to deploy is committed and pushed to `main` before bootstrapping. The root Application reads from GitHub, not from uncommitted local files. If you are working on another branch, merge the reviewed changes into `main` first; the push command below pushes the local `main` branch only. From the current clone path:
 
 ```bash
 cd /Users/ray/devspace/swordhealth-deploy
 
-# Stage and publish the current production controller configuration and these instructions.
-git add argocd/apps/aws-load-balancer-controller.yaml README.md
-git commit -m "Update production deployment configuration"
+# Check the branch and whether there are local changes to publish.
+git status --short
+git branch --show-current
+
+# If there are intended changes, review and commit those files to main first.
+# Push main (skip this if it is already up to date).
 git push origin main
 ```
 
@@ -68,6 +72,8 @@ kubectl get ingress -n swordhealth
 ```
 
 The controller and application may take several minutes to become healthy. Rerun `kubectl get applications -n argocd` to check for `Synced` and `Healthy`; optionally watch reconciliation in a separate terminal with `kubectl get applications -n argocd --watch` (press Ctrl-C to stop watching). The AWS Load Balancer Controller reconciles the Ingress and provisions a public ALB; until it is ready, the Ingress `ADDRESS` can be empty. Get the hostname and make a request to the app:
+
+The Argo CD Application and controller status commands above require Kubernetes permissions outside the `swordhealth` namespace. A namespace-only workload editor can check the app pods and Ingress, but needs Argo CD UI access or separately granted read access to inspect Argo CD reconciliation status.
 
 ```bash
 APP_HOST="$(kubectl get ingress node-example -n swordhealth \
